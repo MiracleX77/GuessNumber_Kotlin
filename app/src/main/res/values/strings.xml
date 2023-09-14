@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">NumberGuessing</string>
+    <string name="text_qes">Try to guess the number I\'m thinking of form 1–999 !</string>
+    <string name="input">Yourrr Guessss…</string>
+    <string name="hint_high">Hint:It\'s higher!</string>
+    <string name="hint_low">Hint:It\'s lower!</string>
+    <string name="hint_correct">Yesss You Win!</string>
+    <string name="again">Play Again</string>
+    <string name="sub">Guess</string>
+
+
+</resources>
