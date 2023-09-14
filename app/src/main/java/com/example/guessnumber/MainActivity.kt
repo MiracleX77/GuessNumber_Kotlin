@@ -3,22 +3,16 @@ package com.example.guessnumber
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.guessnumber.ui.theme.GuessnumberTheme
+import kotlin.math.absoluteValue
 import kotlin.random.Random
 
 
@@ -55,6 +50,11 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun MainScreen() {
+    var randomValue by remember { mutableStateOf(setGame()) }
+    var userGuess by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("") }
+    var isVisible by remember { mutableStateOf(true) }
+
     Toolbar()
     Column(
         modifier = Modifier
@@ -63,7 +63,34 @@ fun MainScreen() {
         verticalArrangement = Arrangement.Top
     ) {
         QuestionText()
-        InputField()
+        InputField(
+            onValueChange = {userGuess = it},
+            onClick={
+                result = checkResult(randomValue,userGuess.toInt())
+            },
+            randomValue = randomValue,
+            userGuess = userGuess,
+            result = result)
+        if(result!=""){
+            if(!isVisible){
+                isVisible = true
+            }
+            if(result == "True"){
+                HintText(res = R.string.hint_correct,isVisible=isVisible)
+            }
+            if(result == "low"){
+                HintText(res = R.string.hint_low,isVisible=isVisible)
+            }
+            if(result =="high"){
+                HintText(res = R.string.hint_high, isVisible = isVisible)
+            }
+        }
+        AgainButton(
+            onClick = { randomValue = setGame()
+            isVisible = false
+            result = ""}
+
+        )
     }
 }
 
@@ -109,15 +136,18 @@ fun QuestionText() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InputField() {
-    var randomValue by remember { mutableStateOf(setGame()) }
-    var userGuess by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf<String?>(null) }
+fun InputField(
+    randomValue: Int,
+    onValueChange: (String) -> Unit,
+    onClick: () -> Unit,
+
+    userGuess: String,
+    result: String
+) {
     TextField(
         value = userGuess,
-        onValueChange = { newText ->
-            userGuess = newText
-        },
+        onValueChange = onValueChange,
+        singleLine = true,
         placeholder = {
             Text(text = stringResource(id = R.string.input))
         },
@@ -127,15 +157,7 @@ fun InputField() {
             .padding(top = 200.dp)
     )
     OutlinedButton(
-        onClick = {
-            val userGuessToInt= userGuess.toInt()
-            val message = when {
-                userGuessToInt == randomValue -> "T"
-                userGuessToInt < randomValue -> "<"
-                else -> ">"
-            }
-            result = message
-        },
+        onClick = onClick,
         modifier = Modifier
             .padding(start = 120.dp, top = 10.dp, end = 16.dp, bottom = 8.dp),
     ){
@@ -144,34 +166,24 @@ fun InputField() {
             color = Color.Blue
         )
     }
-    if (result != null) {
-        if(result =="T"){
-            HintText(res = R.string.hint_correct)
-            AgainButton {
-                randomValue = setGame()
 
-            }
-        }
-        else if(result == "<")
-            HintText(res = R.string.hint_low)
-        else{
-            HintText(res = R.string.hint_high)
-        }
-    }
+
 }
 
 @Composable
-fun HintText(res : Int) {
-    Text(
-        text = stringResource(id = res),
-        color = Color(0xFF070707),
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp),
-        textAlign = TextAlign.Center
-    )
+fun HintText(res : Int,isVisible : Boolean) {
+    if (isVisible) {
+        Text(
+            text = stringResource(id = res),
+            color = Color(0xFF070707),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp),
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable
@@ -191,4 +203,17 @@ fun AgainButton(onClick: () -> Unit) {
 
 fun setGame(): Int {
     return Random.nextInt(1, 1000)
+}
+fun checkResult(numberRandom : Int,useGuessInt: Int ) : String {
+    var result = ""
+    if(numberRandom == useGuessInt){
+        result = "True"
+    }
+    else if (numberRandom > useGuessInt){
+        result = "low"
+    }
+    else{
+        result = "high"
+    }
+    return result
 }
