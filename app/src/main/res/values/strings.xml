@@ -8,6 +8,8 @@
     <string name="again">Play Again</string>
     <string name="sub">Guess</string>
     <string name="s"></string>
+    <string name="score">Your score %d</string>
+    <string name="count">Your guess %d</string>
 
 
 </resources>

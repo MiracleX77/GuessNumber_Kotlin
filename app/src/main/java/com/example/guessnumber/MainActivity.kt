@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -31,8 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.guessnumber.ui.theme.GuessnumberTheme
-import kotlin.math.absoluteValue
 import kotlin.random.Random
+import androidx.compose.material3.Button as Button
 
 
 class MainActivity : ComponentActivity() {
@@ -54,6 +54,11 @@ fun MainScreen() {
     var userGuess by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
     var isVisible by remember { mutableStateOf(true) }
+    var score by remember { mutableStateOf(0) } // คะแนน
+    var scoreIncremented by remember { mutableStateOf(false) }
+    // จำนวนครั้งที่ทาย
+    var count by remember { mutableStateOf(0) }
+    var isCounted by remember { mutableStateOf(false) }
 
     Toolbar()
     Column(
@@ -63,11 +68,22 @@ fun MainScreen() {
         verticalArrangement = Arrangement.Top
     ) {
         QuestionText()
+        ScoreText(score = score)
+        CountText(count = count)
         InputField(
-            onValueChange = {userGuess = it},
-            onClick={
-                result = checkResult(randomValue,userGuess.toInt())
-            },
+        onValueChange = { userGuess = it },
+        onClick = {
+            result = checkResult(randomValue, userGuess.toInt())
+            if (result == "True" && !scoreIncremented) {
+                score += 1
+
+            }
+            if ((result == "low" || result == "high") && !isCounted) {
+                scoreIncremented = false
+                count += 1
+
+            }
+        },
             randomValue = randomValue,
             userGuess = userGuess,
             result = result)
@@ -75,21 +91,34 @@ fun MainScreen() {
             if(!isVisible){
                 isVisible = true
             }
-            if(result == "True"){
-                HintText(res = R.string.hint_correct,isVisible=isVisible)
+            if(result == "True" && !scoreIncremented){
+                score += 1
+                scoreIncremented = true
+                result = ""
+                scoreIncremented = false
+                HintText(res = R.string.hint_correct,isVisible=false,)
+                randomValue = setGame()
+                
             }
             if(result == "low"){
+                isCounted = true
                 HintText(res = R.string.hint_low,isVisible=isVisible)
+                isCounted = false
+
+                // print answer
             }
             if(result =="high"){
+                isCounted = true
                 HintText(res = R.string.hint_high, isVisible = isVisible)
+                isCounted = false
+
             }
         }
         AgainButton(
             onClick = { randomValue = setGame()
             isVisible = false
-            result = ""}
-
+            result = ""
+            scoreIncremented = false}
         )
     }
 }
@@ -134,13 +163,44 @@ fun QuestionText() {
     )
 }
 
+// Show score
+@Composable
+fun ScoreText(score: Int) {
+    Text(
+        text = stringResource(id = R.string.score, score),
+        color = Color(0xFF070707),
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, top = 70.dp, end = 16.dp, bottom = 8.dp),
+        textAlign = TextAlign.Center
+
+    )
+}
+
+// Show count
+@Composable
+fun CountText(count: Int) {
+    Text(
+        text = stringResource(id = R.string.count, count),
+        color = Color(0xFF070707),
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 15.dp, top = 10.dp, end = 10.dp, bottom = 4.dp),
+        textAlign = TextAlign.Center
+
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InputField(
     randomValue: Int,
     onValueChange: (String) -> Unit,
     onClick: () -> Unit,
-
     userGuess: String,
     result: String
 ) {
@@ -151,25 +211,37 @@ fun InputField(
         placeholder = {
             Text(text = stringResource(id = R.string.input))
         },
+        // ตกแต่ง TextField
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = Color(0xFF070707),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            cursorColor = Color(0xFF070707),
+            placeholderColor = Color(0xFF070707),
+        ),
+        // add round corner
+        shape = MaterialTheme.shapes.medium,
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 200.dp)
+            .padding(top = 150.dp)
     )
-    OutlinedButton(
+    Button(
         onClick = onClick,
         modifier = Modifier
-            .padding(start = 120.dp, top = 10.dp, end = 16.dp, bottom = 8.dp),
+            .padding(start = 130.dp, top = 60.dp, end = 16.dp, bottom = 8.dp),
+            
     ){
         Text(
             text = stringResource(id = R.string.sub),
-            color = Color.Blue
         )
     }
 
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HintText(res : Int,isVisible : Boolean) {
     if (isVisible) {
@@ -181,23 +253,24 @@ fun HintText(res : Int,isVisible : Boolean) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }
 
 @Composable
 fun AgainButton(onClick: () -> Unit) {
-    OutlinedButton(
+    Button(
         onClick =  onClick,
         modifier = Modifier
             .padding(start = 120.dp, top = 10.dp, end = 16.dp, bottom = 8.dp),
     ) {
         Text(
             text = stringResource(id = R.string.again),
-            color = Color.Blue
         )
     }
+    
+
 }
 
 
@@ -206,6 +279,7 @@ fun setGame(): Int {
 }
 fun checkResult(numberRandom : Int,useGuessInt: Int ) : String {
     var result = ""
+    println(numberRandom)
     if(numberRandom == useGuessInt){
         result = "True"
     }
