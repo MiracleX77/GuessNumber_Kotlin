@@ -1,7 +1,8 @@
 ﻿# GuessNumber_Kotlin
 Member : 
-Phatchara Rakchuai : 6410742446
-Warunporn Intarachana : 6410742727
+
+ - Phatchara Rakchuai : 6410742446
+ - Warunporn Intarachana : 6410742727
 
 
  
