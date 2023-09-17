@@ -54,8 +54,6 @@ fun MainScreen() {
     var userGuess by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
     var isVisible by remember { mutableStateOf(true) }
-    var score by remember { mutableStateOf(0) } // คะแนน
-    var scoreIncremented by remember { mutableStateOf(false) }
     // จำนวนครั้งที่ทาย
     var count by remember { mutableStateOf(0) }
     var isCounted by remember { mutableStateOf(false) }
@@ -68,18 +66,12 @@ fun MainScreen() {
         verticalArrangement = Arrangement.Top
     ) {
         QuestionText()
-        ScoreText(score = score)
         CountText(count = count)
         InputField(
         onValueChange = { userGuess = it },
         onClick = {
             result = checkResult(randomValue, userGuess.toInt())
-            if (result == "True" && !scoreIncremented) {
-                score += 1
-
-            }
             if ((result == "low" || result == "high") && !isCounted) {
-                scoreIncremented = false
                 count += 1
 
             }
@@ -91,12 +83,8 @@ fun MainScreen() {
             if(!isVisible){
                 isVisible = true
             }
-            if(result == "True" && !scoreIncremented){
-                score += 1
-                scoreIncremented = true
-                result = ""
-                scoreIncremented = false
-                HintText(res = R.string.hint_correct,isVisible=false,)
+            if(result == "True"){
+                HintText(res = R.string.hint_correct,isVisible=isVisible)
                 randomValue = setGame()
                 
             }
@@ -118,7 +106,7 @@ fun MainScreen() {
             onClick = { randomValue = setGame()
             isVisible = false
             result = ""
-            scoreIncremented = false}
+                count = 0}
         )
     }
 }
@@ -230,7 +218,7 @@ fun InputField(
     Button(
         onClick = onClick,
         modifier = Modifier
-            .padding(start = 130.dp, top = 60.dp, end = 16.dp, bottom = 8.dp),
+            .padding(start = 130.dp, top = 20.dp, end = 16.dp, bottom = 8.dp),
             
     ){
         Text(
